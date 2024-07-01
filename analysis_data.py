@@ -6,5 +6,6 @@ data = pd.read_csv('MLYBY.csv')
 
 # Visualize top 10 rows of the sample
 print(data.head(10))
-st.write("MLYBY!")
+
+st.write(df)
 
