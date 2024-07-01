@@ -119,3 +119,22 @@ MLYBY[['Daily Return', 'MA for 10 days', 'MA for 20 days', 'MA for 50 days']].pl
 axes.set_title('MLYBY - Daily Return and Moving Averages')
 plt.show()
 st.pyplot(plt)
+
+######################################HEATMAPS###################################################
+import streamlit as st
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Assuming 'data' is your DataFrame
+data = pd.read_csv('MLYBY.csv')  # Make sure to replace 'your_dataset.csv' with your actual dataset file
+
+# Calculate the correlation matrix
+correlation_matrix = data.corr()
+
+# Create a heatmap
+heat = sns.heatmap(correlation_matrix, cmap="YlGnBu", annot=True)
+
+# Show the plot
+plt.show()
+st.pyplot(plt)
