@@ -5,4 +5,5 @@ seaborn
 pandas_datareader
 yfinance
 scikit.learn
-tensorflow
+tensorflow.keras
+
