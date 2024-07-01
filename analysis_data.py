@@ -126,15 +126,26 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Assuming 'data' is your DataFrame
-data = pd.read_csv('MLYBY.csv')  # Make sure to replace 'your_dataset.csv' with your actual dataset file
+def main():
+    st.title('Correlation Heatmap for MLYBY Stock Data')
 
-# Calculate the correlation matrix
-correlation_matrix = data.corr()
+    # Load data
+    data = pd.read_csv('MLYBY.csv')
 
-# Create a heatmap
-heat = sns.heatmap(correlation_matrix, cmap="YlGnBu", annot=True)
+    # Calculate the correlation matrix
+    correlation_matrix = data.corr()
 
-# Show the plot
-plt.show()
-st.pyplot(plt)
+    # Create a heatmap using Seaborn
+    fig, ax = plt.subplots(figsize=(10, 8))
+    heat = sns.heatmap(correlation_matrix, cmap="YlGnBu", annot=True, ax=ax)
+    ax.set_title('Correlation Matrix Heatmap')
+
+    # Show the plot using Streamlit
+    st.pyplot(fig)
+
+    # Optionally, display the correlation matrix data
+    if st.checkbox('Show Correlation Matrix Data'):
+        st.write(correlation_matrix)
+
+if __name__ == '__main__':
+    main()
