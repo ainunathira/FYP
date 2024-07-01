@@ -32,42 +32,36 @@ st.write("Raw data:", df)
 ##stock information with pandas, and how to analyze basic attributes of a stock.
 import streamlit as st
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-sns.set_style('whitegrid')
-plt.style.use("fivethirtyeight")
-
-# For reading stock data from yahoo
-from pandas_datareader.data import DataReader
 import yfinance as yf
-from pandas_datareader import data as pdr
-
-yf.pdr_override()
-
-# For time stamps
 from datetime import datetime
 
-# The tech stocks we'll use for this analysis
-tech_list = ['MLYBY']
+# Function to download stock data
+def download_stock_data(symbol, start, end):
+    try:
+        data = yf.download(symbol, start=start, end=end)
+        return data
+    except Exception as e:
+        st.error(f"Error occurred: {e}")
+        return None
 
-# Set up End and Start times for data grab
-tech_list = ['MLYBY']
+# Set up Streamlit sidebar for user input
+st.sidebar.title('Stock Data Analysis')
+symbol = st.sidebar.text_input("Enter stock symbol", "MLYBY")
+start_date = st.sidebar.date_input("Start date", datetime.now().replace(year=datetime.now().year - 1))
+end_date = st.sidebar.date_input("End date", datetime.now())
 
-end = datetime.now()
-start = datetime(end.year - 1, end.month, end.day)
+# Main content area to display data
+st.title('Stock Data Analysis')
 
-for stock in tech_list:
-    globals()[stock] = yf.download(stock, start, end)
+if symbol:
+    st.write(f"Downloading data for {symbol} from {start_date} to {end_date}...")
+    data = download_stock_data(symbol, start_date, end_date)
     
-
-company_list = [MLYBY]
-company_name = ["MLYBY"]
-
-for company, com_name in zip(company_list, company_name):
-    company["company_name"] = com_name
-    
-df = pd.concat(company_list, axis=0)
-df.tail(20)
-st.write(data)
+    if data is not None:
+        st.write("Data successfully downloaded:")
+        st.write(data.head())
+        
+        # Optionally, you can add more visualizations or analysis here
+        # Example: Plotting closing prices
+        st.subheader("Closing Prices")
+        st.line_chart(data['Close'])
