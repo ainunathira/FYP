@@ -271,5 +271,6 @@ plt.ylabel('Close Price USD')
 plt.plot(train['Close'])
 plt.plot(valid[['Close', 'Predictions']])
 plt.legend(['Train', 'Val', 'Predictions'], loc='lower right')
-plt.show()   
-st.pyplot(fig)
+
+# Display the plot using Streamlit
+st.pyplot()
