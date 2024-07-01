@@ -2,4 +2,6 @@ numpy
 pandas
 matplotlib
 seaborn
-tensorflow.keras
+!pip install pandas_datareader
+!pip install -q yfinance
+%matplotlib inline
