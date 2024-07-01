@@ -123,29 +123,38 @@ st.pyplot(plt)
 ######################################HEATMAPS###################################################
 import streamlit as st
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
+import yfinance as yf
 
 def main():
-    st.title('Correlation Heatmap for MLYBY Stock Data')
+    st.title('MLYBY Stock Price Analysis')
+
+    # Sidebar
+    st.sidebar.header('User Input Parameters')
+    start_date = st.sidebar.date_input("Start date", value=pd.to_datetime('2020-01-01'))
+    end_date = st.sidebar.date_input("End date", value=pd.to_datetime('today'))
 
     # Load data
-    data = pd.read_csv('MLYBY.csv')
+    @st.cache
+    def load_data():
+        data = yf.download('MLYBY', start=start_date, end=end_date)
+        return data
 
-    # Calculate the correlation matrix
-    correlation_matrix = data.corr()
+    data = load_data()
 
-    # Create a heatmap using Seaborn
-    fig, ax = plt.subplots(figsize=(10, 8))
-    heat = sns.heatmap(correlation_matrix, cmap="YlGnBu", annot=True, ax=ax)
-    ax.set_title('Correlation Matrix Heatmap')
+    # Display data
+    st.subheader('Stock Data')
+    st.write(data.head())
 
-    # Show the plot using Streamlit
+    # Plot closing price
+    st.subheader('Closing Price')
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(data.index, data['Close'], label='Close Price', color='b')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Price (USD)')
+    ax.set_title('MLYBY Closing Price')
+    ax.grid(True)
     st.pyplot(fig)
-
-    # Optionally, display the correlation matrix data
-    if st.checkbox('Show Correlation Matrix Data'):
-        st.write(correlation_matrix)
 
 if __name__ == '__main__':
     main()
