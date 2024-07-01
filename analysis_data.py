@@ -120,21 +120,71 @@ axes.set_title('MLYBY - Daily Return and Moving Averages')
 plt.show()
 st.pyplot(plt)
 
-######################################HEATMAPS###################################################
+######################################prediction###################################################
 import streamlit as st
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import MinMaxScaler
 
-def main():
-    # Read your dataset (replace 'MLYBY.csv' with your actual file path)
-    data = pd.read_csv('MLYBY.csv')
+# Assuming you have a CSV file named 'MLYBY.csv' with 'Date' and 'Close' columns
+# Replace this with your actual data loading logic
+data = pd.read_csv('MLYBY.csv')
 
-    # Display the dataset or any other analysis you want
-    st.write("Sample Data:", data.head())
+# Check if 'Date' column exists in the DataFrame
+data['Date'] = pd.to_datetime(data['Date'], format='%d/%m/%Y', errors='coerce', infer_datetime_format=True)
 
-    # Sidebar for user input
-    st.sidebar.header('User Input Parameters')
-    end_date = st.sidebar.date_input("End date", value=pd.to_datetime('today'))
-    st.write("Selected End Date:", end_date)
+if 'Date' in data.columns:
+    # Assuming 'Date' is a datetime column
+    data['Date'] = pd.to_datetime(data['Date'])
 
-if __name__ == '__main__':
-    main()
+    # Sorting the data by date
+    data.sort_values(by='Date', inplace=True)
+
+    # Creating a new column 'Day_Index' for easier indexing
+    data['Day_Index'] = range(1, len(data) + 1)
+
+    # Using 'Day_Index' as the feature
+    X = data[['Day_Index']].values
+
+    # Using 'Close' as the target variable
+    y = data['Close'].values
+
+    # Normalize the features
+    scaler = MinMaxScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # Splitting the data into training and testing sets
+    x_train, x_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, shuffle=False)
+
+    # Build and train the model (example using Linear Regression)
+    model = LinearRegression()
+    model.fit(x_train, y_train)
+
+    # Generate predictions
+    predictions = model.predict(X_scaled)
+
+    # Adding 'Predictions' to the DataFrame
+    data['Predictions'] = predictions
+
+    plt.figure(figsize=(16, 6))
+    plt.title('Model Prediction vs Actual Data')
+    plt.xlabel('Date', fontsize=18)
+    plt.ylabel('Close Price USD ($)', fontsize=18)
+
+    # Plotting the training data
+    plt.plot_date(data['Date'][:len(x_train)], data['Close'][:len(x_train)], '-', label='Train', color='blue')
+
+    # Plotting the validation data and predictions
+    plt.plot_date(data['Date'][len(x_train):], data['Close'][len(x_train):], '-', label='Validation', color='green')
+    plt.plot_date(data['Date'], data['Predictions'], '-', label='Predictions', color='orange')
+
+    plt.legend(loc='lower right')
+    plt.grid(True)
+    plt.show()
+
+else:
+    print("Error: 'Date' column not found in the DataFrame.")
+    st.pyplot(plt)
