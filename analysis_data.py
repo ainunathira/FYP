@@ -70,3 +70,45 @@ if symbol:
         # Example: Plotting closing prices
         st.subheader("Closing Prices")
         st.line_chart(data['Close'])
+
+#######################################MOVING AVERAGE##########################################
+# src/app.py
+
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def load_data(file_path):
+    return pd.read_csv(file_path)
+
+def calculate_moving_averages(df, ma_days=[10, 20, 50]):
+    for ma in ma_days:
+        column_name = f"MA for {ma} days"
+        df[column_name] = df['Adj Close'].rolling(ma).mean()
+    return df
+
+def plot_data(df):
+    fig, ax = plt.subplots(figsize=(15, 5))
+    df[['Adj Close', 'MA for 10 days', 'MA for 20 days', 'MA for 50 days']].plot(ax=ax)
+    ax.set_title('MLYBY Stock Prices with Moving Averages')
+    st.pyplot(fig)
+
+def main():
+    st.title('MLYBY Stock Price Analysis')
+
+    # Load data
+    file_path = 'data/MLYBY.csv'
+    df = load_data(file_path)
+
+    # Calculate moving averages
+    df = calculate_moving_averages(df)
+
+    # Plotting
+    plot_data(df)
+
+    # Show raw data
+    if st.checkbox('Show raw data'):
+        st.write(df)
+
+if __name__ == '__main__':
+    main()
