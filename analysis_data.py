@@ -165,23 +165,25 @@ if 'Date' in data.columns:
     # Adding 'Predictions' to the DataFrame
     data['Predictions'] = predictions
 
-    # Display the predictions and actual data using Streamlit
-    st.title('Model Prediction vs Actual Data')
-    st.pyplot(plt.figure(figsize=(16, 6)))
-    
+    # Set up the Streamlit app layout
+    st.title('MLYBY Stock Price Prediction')
+    st.subheader('Model Prediction vs Actual Data')
+
     # Plotting the training data
-    plt.plot(data['Date'][:len(x_train)], data['Close'][:len(x_train)], '-', label='Train', color='blue')
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(data['Date'][:len(x_train)], data['Close'][:len(x_train)], '-', label='Train', color='blue')
 
     # Plotting the validation data and predictions
-    plt.plot(data['Date'][len(x_train):], data['Close'][len(x_train):], '-', label='Validation', color='green')
-    plt.plot(data['Date'], data['Predictions'], '-', label='Predictions', color='orange')
+    ax.plot(data['Date'][len(x_train):], data['Close'][len(x_train):], '-', label='Validation', color='green')
+    ax.plot(data['Date'], data['Predictions'], '-', label='Predictions', color='orange')
 
-    plt.xlabel('Date', fontsize=18)
-    plt.ylabel('Close Price USD ($)', fontsize=18)
-    plt.legend(loc='lower right')
-    plt.grid(True)
+    ax.set_xlabel('Date', fontsize=14)
+    ax.set_ylabel('Close Price USD ($)', fontsize=14)
+    ax.legend(loc='lower right')
+    ax.grid(True)
 
-    # Show plot using Streamlit
-    st.pyplot()
+    # Display plot in Streamlit
+    st.pyplot(fig)
+
 else:
     st.error("Error: 'Date' column not found in the DataFrame.")
