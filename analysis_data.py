@@ -220,4 +220,4 @@ plt.plot(valid[['Close', 'Predictions']])
 plt.legend(['Train', 'Val', 'Predictions'], loc='lower right')
 
 # Display the plot using Streamlit
-st.pyplot()
+st.pyplot(plt.gcf())
