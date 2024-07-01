@@ -91,3 +91,31 @@ MLYBY[['Adj Close', 'MA for 10 days', 'MA for 20 days', 'MA for 50 days']].plot(
 axes.set_title('MLYBY')
 plt.show()
 st.pyplot(plt)
+
+################################DAILY RETURN#######################################################
+import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
+
+ma_day = [10, 20, 50]
+
+# Assuming you have a DataFrame named MLYBY
+MLYBY = pd.read_csv('MLYBY.csv')
+
+# Calculate daily returns
+MLYBY['Daily Return'] = MLYBY['Adj Close'].pct_change()
+
+# Calculate moving averages for daily returns
+for ma in ma_day:
+    column_name = f"MA for {ma} days"
+    MLYBY[column_name] = MLYBY['Daily Return'].rolling(ma).mean()
+
+# Plot the data
+fig, axes = plt.subplots(figsize=(15, 5))
+# x- date
+# y - daily stock return
+
+MLYBY[['Daily Return', 'MA for 10 days', 'MA for 20 days', 'MA for 50 days']].plot(ax=axes)
+axes.set_title('MLYBY - Daily Return and Moving Averages')
+plt.show()
+st.pyplot(plt)
