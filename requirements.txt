@@ -1,7 +1,4 @@
 numpy
 pandas
-matplotlib
+matplotlib.pyplot
 seaborn
-!pip install pandas_datareader
-!pip install -q yfinance
-%matplotlib inline
