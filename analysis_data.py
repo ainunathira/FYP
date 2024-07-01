@@ -33,21 +33,26 @@ st.write("Raw data:", df)
 import streamlit as st
 import pandas as pd
 import yfinance as yf
-from datetime import datetime
+from datetime import datetime, timedelta
 
-# Function to download stock data
-def download_stock_data(symbol, start, end):
-    try:
-        data = yf.download(symbol, start=start, end=end)
-        return data
-    except Exception as e:
-        st.error(f"Error occurred: {e}")
-        return None
+# Function to download stock data with retry mechanism
+def download_stock_data_with_retry(symbol, start, end, max_retries=3):
+    retries = 0
+    while retries < max_retries:
+        try:
+            data = yf.download(symbol, start=start, end=end)
+            return data
+        except Exception as e:
+            retries += 1
+            if retries == max_retries:
+                st.error(f"Error occurred after {max_retries} retries: {e}")
+                return None
+            st.warning(f"Error occurred: {e}. Retrying...")
 
 # Set up Streamlit sidebar for user input
 st.sidebar.title('Stock Data Analysis')
 symbol = st.sidebar.text_input("Enter stock symbol", "MLYBY")
-start_date = st.sidebar.date_input("Start date", datetime.now().replace(year=datetime.now().year - 1))
+start_date = st.sidebar.date_input("Start date", datetime.now() - timedelta(days=365))
 end_date = st.sidebar.date_input("End date", datetime.now())
 
 # Main content area to display data
@@ -55,7 +60,7 @@ st.title('Stock Data Analysis')
 
 if symbol:
     st.write(f"Downloading data for {symbol} from {start_date} to {end_date}...")
-    data = download_stock_data(symbol, start_date, end_date)
+    data = download_stock_data_with_retry(symbol, start_date, end_date)
     
     if data is not None:
         st.write("Data successfully downloaded:")
