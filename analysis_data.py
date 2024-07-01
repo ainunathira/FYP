@@ -123,38 +123,18 @@ st.pyplot(plt)
 ######################################HEATMAPS###################################################
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import yfinance as yf
 
 def main():
-    st.title('MLYBY Stock Price Analysis')
+    # Read your dataset (replace 'MLYBY.csv' with your actual file path)
+    data = pd.read_csv('MLYBY.csv')
 
-    # Sidebar
+    # Display the dataset or any other analysis you want
+    st.write("Sample Data:", data.head())
+
+    # Sidebar for user input
     st.sidebar.header('User Input Parameters')
-    start_date = st.sidebar.date_input("Start date", value=pd.to_datetime('2020-01-01'))
     end_date = st.sidebar.date_input("End date", value=pd.to_datetime('today'))
-
-    # Load data
-    @st.cache
-    def load_data():
-        data = yf.download('MLYBY', start=start_date, end=end_date)
-        return data
-
-    data = load_data()
-
-    # Display data
-    st.subheader('Stock Data')
-    st.write(data.head())
-
-    # Plot closing price
-    st.subheader('Closing Price')
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.plot(data.index, data['Close'], label='Close Price', color='b')
-    ax.set_xlabel('Date')
-    ax.set_ylabel('Price (USD)')
-    ax.set_title('MLYBY Closing Price')
-    ax.grid(True)
-    st.pyplot(fig)
+    st.write("Selected End Date:", end_date)
 
 if __name__ == '__main__':
     main()
