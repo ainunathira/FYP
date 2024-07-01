@@ -203,21 +203,75 @@ data = pd.read_csv('MLYBY.csv')
 # Assuming 'Close' is the column you want to predict (adjust as needed)
 dataset = data.filter(['Close']).values
 
-# ... LSTM model training and prediction code ...
+# Scale the data
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled_data = scaler.fit_transform(dataset)
+
+# Define the sequence length for input to the LSTM model
+sequence_length = 60  # Number of timesteps to look back
+
+# Create the training data set
+training_data_len = int(len(dataset) * 0.8)  # 80% of data for training
+train_data = scaled_data[0:training_data_len, :]
+
+# Prepare the training data in sequences
+x_train = []
+y_train = []
+for i in range(sequence_length, len(train_data)):
+    x_train.append(train_data[i-sequence_length:i, 0])  # Using past 'sequence_length' values
+    y_train.append(train_data[i, 0])  # Target value is the next value after the sequence
+
+# Convert to numpy arrays
+x_train, y_train = np.array(x_train), np.array(y_train)
+
+# Reshape the data for LSTM input [samples, timesteps, features]
+x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+
+# Define and train the LSTM model
+model = Sequential()
+model.add(LSTM(50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+model.add(LSTM(50, return_sequences=False))
+model.add(Dense(25))
+model.add(Dense(1))
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(x_train, y_train, batch_size=128, epochs=1)
+
+# Prepare the test data
+test_data = scaled_data[training_data_len - sequence_length:, :]
+x_test = []
+y_test = dataset[training_data_len:, :]  # Actual values for comparison
+
+for i in range(sequence_length, len(test_data)):
+    x_test.append(test_data[i-sequence_length:i, 0])
+
+# Convert to numpy array
+x_test = np.array(x_test)
+
+# Reshape the data for LSTM input [samples, timesteps, features]
+x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+
+# Get the model's predicted price values
+predictions = model.predict(x_test)
+predictions = scaler.inverse_transform(predictions)
+
+# Calculate the root mean squared error (RMSE)
+rmse = np.sqrt(np.mean((predictions - y_test) ** 2))
+print("Root Mean Squared Error (RMSE):", rmse)
 
 # Plot the data
 train = data[:training_data_len]
-valid = data[training_data_len:].copy()  # Create a copy to avoid the warning
-valid.loc[:, 'Predictions'] = predictions  # Use .loc to set the predictions
+valid = data[training_data_len:].copy()
+valid['Predictions'] = predictions
 
-# Visualize the data
+# Plotting the data
 plt.figure(figsize=(16, 8))
 plt.title('MLYBY Predicted Stock Price')
 plt.xlabel('Date')
 plt.ylabel('Close Price USD')
-plt.plot(train['Close'])
-plt.plot(valid[['Close', 'Predictions']])
-plt.legend(['Train', 'Val', 'Predictions'], loc='lower right')
+plt.plot(train['Close'], label='Train')
+plt.plot(valid['Close'], label='Valid')
+plt.plot(valid['Predictions'], label='Predictions')
+plt.legend(loc='lower right')
 
 # Display the plot using Streamlit
 st.pyplot(plt.gcf())
