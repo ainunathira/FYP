@@ -129,21 +129,17 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
 
-# Assuming you have a CSV file named 'MLYBY.csv' with 'Date' and 'Close' columns
-# Replace this with your actual data loading logic
+# Load data from CSV file (replace 'MLYBY.csv' with your actual file)
 data = pd.read_csv('MLYBY.csv')
 
 # Check if 'Date' column exists in the DataFrame
-data['Date'] = pd.to_datetime(data['Date'], format='%d/%m/%Y', errors='coerce', infer_datetime_format=True)
+data['Date'] = pd.to_datetime(data['Date'], format='%d/%m/%Y', errors='coerce')
 
 if 'Date' in data.columns:
-    # Assuming 'Date' is a datetime column
-    data['Date'] = pd.to_datetime(data['Date'])
-
-    # Sorting the data by date
+    # Sort the data by date
     data.sort_values(by='Date', inplace=True)
-
-    # Creating a new column 'Day_Index' for easier indexing
+    
+    # Create a new column 'Day_Index' for easier indexing
     data['Day_Index'] = range(1, len(data) + 1)
 
     # Using 'Day_Index' as the feature
@@ -169,22 +165,23 @@ if 'Date' in data.columns:
     # Adding 'Predictions' to the DataFrame
     data['Predictions'] = predictions
 
-    plt.figure(figsize=(16, 6))
-    plt.title('Model Prediction vs Actual Data')
-    plt.xlabel('Date', fontsize=18)
-    plt.ylabel('Close Price USD ($)', fontsize=18)
-
+    # Display the predictions and actual data using Streamlit
+    st.title('Model Prediction vs Actual Data')
+    st.pyplot(plt.figure(figsize=(16, 6)))
+    
     # Plotting the training data
-    plt.plot_date(data['Date'][:len(x_train)], data['Close'][:len(x_train)], '-', label='Train', color='blue')
+    plt.plot(data['Date'][:len(x_train)], data['Close'][:len(x_train)], '-', label='Train', color='blue')
 
     # Plotting the validation data and predictions
-    plt.plot_date(data['Date'][len(x_train):], data['Close'][len(x_train):], '-', label='Validation', color='green')
-    plt.plot_date(data['Date'], data['Predictions'], '-', label='Predictions', color='orange')
+    plt.plot(data['Date'][len(x_train):], data['Close'][len(x_train):], '-', label='Validation', color='green')
+    plt.plot(data['Date'], data['Predictions'], '-', label='Predictions', color='orange')
 
+    plt.xlabel('Date', fontsize=18)
+    plt.ylabel('Close Price USD ($)', fontsize=18)
     plt.legend(loc='lower right')
     plt.grid(True)
-    plt.show()
 
+    # Show plot using Streamlit
+    st.pyplot()
 else:
-    print("Error: 'Date' column not found in the DataFrame.")
-    st.pyplot(plt)
+    st.error("Error: 'Date' column not found in the DataFrame.")
