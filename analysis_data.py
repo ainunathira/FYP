@@ -275,3 +275,121 @@ plt.legend(loc='lower right')
 
 # Display the plot using Streamlit
 st.pyplot(plt.gcf())
+
+################################################CANDLESTICK#########################################
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from keras.models import Sequential
+from keras.layers import Dense, LSTM
+import mplfinance as mpf
+import streamlit as st
+from datetime import datetime
+
+# Load the CSV file into a DataFrame
+data = pd.read_csv('MLYBY.csv')
+
+# Ensure the 'Date' column is in datetime format
+data['Date'] = pd.to_datetime(data['Date'])
+
+# Extract the 'Close' prices (assuming this is the target variable)
+dataset = data[['Date', 'Close']].values
+
+# Normalize the data
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled_data = scaler.fit_transform(data[['Close']])
+
+# Define the sequence length for input to the LSTM model
+sequence_length = 60  # Number of timesteps to look back
+
+# Create the training data set
+training_data_len = int(len(dataset) * 0.8)  # 80% of data for training
+train_data = scaled_data[0:training_data_len, :]
+
+# Prepare the training data in sequences
+x_train = []
+y_train = []
+for i in range(sequence_length, len(train_data)):
+    x_train.append(train_data[i-sequence_length:i, 0])  # Using past 'sequence_length' values
+    y_train.append(train_data[i, 0])  # Target value is the next value after the sequence
+
+# Convert to numpy arrays
+x_train, y_train = np.array(x_train), np.array(y_train)
+
+# Reshape the data for LSTM input [samples, timesteps, features]
+x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], 1))
+
+# Define the LSTM model
+model = Sequential()
+model.add(LSTM(50, return_sequences=True, input_shape=(x_train.shape[1], 1)))
+model.add(LSTM(50, return_sequences=False))
+model.add(Dense(25))
+model.add(Dense(1))
+
+# Compile the model
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+# Train the model and use validation split
+history = model.fit(x_train, y_train, batch_size=32, epochs=100, validation_split=0.2)
+
+# Create the test data set
+test_data = scaled_data[training_data_len - sequence_length:, :]
+x_test = []
+y_test = dataset[training_data_len:, 1]  # actual prices (unscaled)
+for i in range(sequence_length, len(test_data)):
+    x_test.append(test_data[i-sequence_length:i, 0])
+
+# Convert to numpy arrays
+x_test = np.array(x_test)
+
+# Reshape the data for LSTM input [samples, timesteps, features]
+x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+
+# Make predictions on the test data
+predictions = model.predict(x_test)
+predictions = scaler.inverse_transform(predictions)  # invert scaling to get actual prices
+
+# Find the buy and sell signals based on some strategy
+buy_signals = []
+sell_signals = []
+for i in range(1, len(predictions)):
+    if predictions[i] > predictions[i-1] and y_test[i] > y_test[i-1]:
+        buy_signals.append(i)
+    elif predictions[i] < predictions[i-1] and y_test[i] < y_test[i-1]:
+        sell_signals.append(i)
+
+# Prepare data for candlestick plotting
+test_dates = data['Date'].values[training_data_len:]  # dates for test data
+plot_data = pd.DataFrame({
+    'Date': test_dates,
+    'Open': y_test,
+    'High': np.maximum(y_test, predictions.flatten()),
+    'Low': np.minimum(y_test, predictions.flatten()),
+    'Close': predictions.flatten()
+})
+
+# Convert dates to the appropriate format for mplfinance
+plot_data.set_index('Date', inplace=True)
+
+# Add buy/sell signals to the plot data
+buy_signals_dates = [test_dates[i] for i in buy_signals]
+sell_signals_dates = [test_dates[i] for i in sell_signals]
+
+# Create the plot
+apds = [
+    mpf.make_addplot(plot_data['Close'], type='line', color='blue', label='Predicted Close'),
+    mpf.make_addplot(y_test, type='scatter', marker='^', color='green', markersize=100, panel=0, secondary_y=False, label='Buy Signal', scatter_kwds=dict(alpha=0.5)),
+    mpf.make_addplot(y_test, type='scatter', marker='v', color='red', markersize=100, panel=0, secondary_y=False, label='Sell Signal', scatter_kwds=dict(alpha=0.5))
+]
+
+# Use Streamlit to create the app
+st.title('Stock Price Prediction with LSTM')
+st.write('### Actual vs Predicted Stock Prices with Buy and Sell Signals')
+
+# Plot using mplfinance
+fig, ax = mpf.plot(plot_data, type='candle', style='charles', addplot=apds, returnfig=True, title='Actual vs Predicted Stock Prices with Buy and Sell Signals', ylabel='Stock Price')
+st.pyplot(fig)
+
+# Optional: Print out the actual and predicted prices for further analysis
+comparison = pd.DataFrame({'Actual Price': y_test.flatten(), 'Predicted Price': predictions.flatten()})
+st.write(comparison)
