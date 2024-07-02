@@ -208,11 +208,11 @@ if 'Date' in data.columns:
     # Sort the data by date
     data.sort_values(by='Date', inplace=True)
     
-    # Create a new column 'Day_Index' for easier indexing
-    data['Day_Index'] = range(1, len(data) + 1)
+    # Create a new column 'Year_Index' for easier indexing by year
+    data['Year_Index'] = data['Date'].dt.year
 
-    # Using 'Day_Index' as the feature
-    X = data[['Day_Index']].values
+    # Using 'Year_Index' as the feature
+    X = data[['Year_Index']].values
 
     # Using 'Close' as the target variable
     y = data['Close'].values
