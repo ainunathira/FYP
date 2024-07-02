@@ -261,3 +261,4 @@ if 'Date' in data.columns:
 
 else:
     st.error("Error: 'Date' column not found in the DataFrame.")
+
