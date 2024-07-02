@@ -243,12 +243,18 @@ if 'Date' in data.columns:
     st.title('MLYBY Stock Price Prediction')
     st.subheader('Model Prediction vs Actual Data')
 
-    # Create the candlestick chart
-    apds = [
-        mpf.make_addplot(plot_data['Predictions'], type='line', color='orange', label='Predicted Close')
-    ]
+    # Create the candlestick chart with predictions as an additional plot
+    fig, ax = plt.subplots(figsize=(12, 8))
 
-    fig, ax = mpf.plot(plot_data, type='candle', style='charles', addplot=apds, returnfig=True, title='Actual vs Predicted Stock Prices', ylabel='Stock Price USD ($)')
+    # Plotting candlestick chart
+    mpf.plot(plot_data, type='candle', style='charles', ax=ax, title='Actual vs Predicted Stock Prices', ylabel='Stock Price')
+
+    # Adding predicted values as an additional plot
+    ax.plot(plot_data.index, plot_data['Predictions'], color='orange', label='Predictions')
+
+    # Customize the plot
+    ax.legend()
+    ax.grid(True)
 
     # Display plot in Streamlit
     st.pyplot(fig)
